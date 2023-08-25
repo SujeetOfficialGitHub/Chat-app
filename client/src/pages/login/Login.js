@@ -1,77 +1,125 @@
-import React, { useState } from 'react'
-import CustomInput from '../../components/util/CustomInput'
-import CustomButton from '../../components/util/CustomButton';
+import {
+    FormControl, 
+    FormLabel, 
+    Button,
+    Input, 
+    InputGroup, 
+    InputRightElement,
+    VStack, 
+    useToast, 
+    Heading
+} from '@chakra-ui/react'
+
+import { useState } from "react";
+import axios from "axios";
 import {Link} from 'react-router-dom'
-import axios from 'axios';
 import { ChatState } from '../../context/ChatProvider';
 
+
 const Login = () => {
+    const [show, setShow] = useState(false);
+    const handleClick = () => setShow(!show)
+    const toast = useToast();
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
-    const [message, setMessage] = useState('');
-    const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
+
+    // const history = useHistory()
 
     const {login} = ChatState();
 
-    const handleLogin = async(e) => {
-        e.preventDefault();
+    const submitHandler = async() => {
+        setLoading(true);
+        if (!email || !password){
+            toast({
+                title: 'Missing required fields',
+                status: "warning",
+                duration: 5000,
+                isClosable: true,
+                position: "top",
+            });
+            setLoading(false);
+            return;
+        }
         try {
             const res = await axios.post('/api/user/login', {
                 email, password
             })
-            setMessage(res.data.message)
-            setEmail('')
-            login(res.data.token)
+            toast({
+                title: "Login Successful",
+                status: "success",
+                duration: 5000,
+                isClosable: true,
+                position: "top",
+            });
+            // console.log(res)
+            login(res.data.token);
+            setLoading(false)
         } catch (error) {
-            // console.log(error)
-            setError(error?.response?.data?.message)
+            toast({
+                title: "Error Occured!",
+                description: error.response.data.message,
+                status: "error",
+                duration: 5000,
+                isClosable: true,
+                position: "top",
+            });
+            setLoading(false);
         }
-        setPassword('')
-    }
-    if (message || error){
-        setTimeout(() => {
-            setMessage('')
-            setError('')
-        }, 10000)
     }
   return (
-    <div className='border-2 p-3 mt-10 mx-auto max-w-sm rounded'>
-        <h1 className='font-bold text-center pb-2'>Login</h1>
-        {message && <p className='text-center bg-[green] text-white'>{message}</p>}
-        {error && <p className='text-center bg-[red] text-white'>{error}</p>}
-        <hr />
-        <form onSubmit={handleLogin}>
-            <CustomInput 
-                label="email"
+    <VStack spacing="3px" border="1px" padding="10px" maxWidth='400px' margin= '30px auto' borderRadius="5px">
+        <Heading as="h3" size="lg">Login</Heading>
+        <FormControl id='email' isRequired>
+            <FormLabel>Email</FormLabel>
+            <Input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                id="email"
                 placeholder="Enter your email"
-                inputClass="border-2 w-full rounded px-1 mb-3"
-                required
             />
-            <CustomInput 
-                label="Password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                id="password"
-                placeholder="Enter your password"
-                inputClass="border-2 w-full rounded px-1 mb-3"
-                required
-            />
-            <Link className='text-[#1d4ed8]' to="/forgot-password">Forgot Password</Link>
-            <br />
-            <CustomButton
-                type="submit"
-                btnClass="border-2 w-full bg-[green] text-white rounded"
-            >
-                Login
-            </CustomButton>
-        </form>
-        <p className='w-full border-2 mt-3 text-center'>Don't have an account. <br /> Please <Link className='text-[#1d4ed8]' to="/signup">Signup here</Link></p>
-    </div>
+        </FormControl>
+        <FormControl id='password' isRequired>
+            <FormLabel>Password</FormLabel>
+            <InputGroup size='md'>
+                <Input
+                    pr='4.5rem'
+                    type={show ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder='Enter password'
+                />
+                <InputRightElement width='4.5rem'>
+                    <Button h='1.75rem' size='sm' onClick={handleClick}>
+                    {show ? 'Hide' : 'Show'}
+                    </Button>
+                </InputRightElement>
+            </InputGroup>
+        </FormControl>
+        <Button
+            colorScheme="blue"
+            width="100%"
+            style={{ marginTop: 15 }}
+            onClick={submitHandler}
+            isLoading={loading}
+        >
+        Login
+        </Button>
+        {/* <Button
+            variant="solid"
+            colorScheme="red"
+            width="100%"
+            onClick={() => {
+            setEmail("guest@example.com");
+            setPassword("123456");
+            }}
+        >
+            Get Guest User Credentials
+        </Button> */}
+        <p style={{border: "1px solid black", padding: "5px", width: "100%", borderRadius: "5px", textAlign: 'center', marginTop: "15px"}}>
+            Don't have an account <Link style={{color: "blue"}} to="/signup">Sign up here</Link>
+        </p>
+    </VStack>
   )
 }
 

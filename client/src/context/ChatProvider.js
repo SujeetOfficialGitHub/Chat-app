@@ -4,12 +4,18 @@ const ChatContext = createContext({
     token: '',
     isLoggedIn: false,
     login: (token) => {},
-    logout: () => {}
+    logout: () => {},
 })
 
 const ChatProvider = ({children}) => {
   const initialToken = localStorage.getItem('token');
   const [token, setToken] = useState(initialToken)
+
+  const [selectedChat, setSelectedChat] = useState();
+  const [notification, setNotification] = useState([]);
+  const [chats, setChats] = useState();
+
+
 
   const isLoggedIn = !!token
   const handleLogin = (token) => {
@@ -26,7 +32,13 @@ const ChatProvider = ({children}) => {
     token: token,
     isLoggedIn: isLoggedIn,
     login: handleLogin,
-    logout: handleLogout
+    logout: handleLogout,
+    selectedChat,
+    setSelectedChat,
+    notification,
+    setNotification,
+    chats,
+    setChats,
   }
   return (
     <ChatContext.Provider value={chatValue}>
