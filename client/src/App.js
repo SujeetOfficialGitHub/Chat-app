@@ -1,24 +1,19 @@
-import logo from './logo.svg';
 import './App.css';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import Home from './pages/home/Home';
+import Login from './pages/login/Login';
+import Signup from './pages/signup/Signup';
+import { ChatState } from './context/ChatProvider';
 
 function App() {
+  const {isLoggedIn} = ChatState();
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Routes>
+      <Route path='/' element={isLoggedIn ? <Home /> : <Navigate to="/login" />}/>
+      <Route path='/login' element={!isLoggedIn ? <Login /> : <Navigate to="/" /> }/>
+      <Route path='/signup' element={!isLoggedIn ? <Signup /> : <Navigate to="/" /> }/>
+    </Routes>
   );
 }
 
