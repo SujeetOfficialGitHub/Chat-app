@@ -62,11 +62,12 @@ const SideDrawer = () => {
         },
       };
 
-      const { data } = await axios.get(`/api/user?search=${search}`, config);
-
+      const res = await axios.get(`/api/user?search=${search}`, config);
+      console.log(res)
       setLoading(false);
-      setSearchResult(data);
+      setSearchResult(res?.data?.users);
     } catch (error) {
+      console.log(error)
       toast({
         title: "Error Occured!",
         description: "Failed to Load the Search Results",
@@ -169,7 +170,7 @@ const SideDrawer = () => {
             ) : (
               searchResult?.map((user) => (
                 <UserListItem
-                  key={user._id}
+                  key={user.id}
                   user={user}
                   handleFunction={() => accessChat(user.id)}
                 />

@@ -1,6 +1,8 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt')
 const User = require('../models/userModel')
+const {Op, Sequelize} = require('sequelize')
+
 
 const signup = async(req, res) => {
     // console.log(req.body)
@@ -63,7 +65,7 @@ const login = async(req, res) => {
         };
 
         // Create token 
-        const token = jwt.sign({user: user.name, email: user.email}, process.env.SECRET_KEY);
+        const token = jwt.sign({id: user.id, user: user.name, email: user.email}, process.env.SECRET_KEY);
         res.status(200).json({message: 'Login successfully', token})
 
     } catch (error) {
@@ -72,8 +74,35 @@ const login = async(req, res) => {
     }
 
 }
+const allUsers = async (req, res) => {
+    const keyword = req.query.search
+    ? {
+        [Op.or]: [
+          { name: { [Op.like]: `%${req.query.search}%` } },
+        ],
+      }
+    : {};
+
+    try {
+        const users = await User.findAll({
+            where: {
+              [Op.and]: [
+                keyword,
+                { id: { [Op.ne]: req.user.id } },
+              ],
+            },
+        });
+      
+        res.status(200).json({ users });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+};
+  
 
 module.exports = {
     signup,
-    login
+    login,
+    allUsers
 }

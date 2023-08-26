@@ -9,7 +9,7 @@ const cors = require('cors')
 app.use(cors())
 
 const userRoutes = require('./routes/userRoutes')
-app.use('/api/user/', userRoutes)
+app.use('/api/user', userRoutes)
 
 // sequelize.sync({force: true})
 
