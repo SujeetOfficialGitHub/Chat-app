@@ -13,7 +13,7 @@ const ChatProvider = ({children}) => {
 
   const [selectedChat, setSelectedChat] = useState();
   const [notification, setNotification] = useState([]);
-  const [chats, setChats] = useState();
+  const [chats, setChats] = useState([]);
 
 
 
