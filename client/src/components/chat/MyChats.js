@@ -12,16 +12,17 @@ import {AiOutlinePlus} from 'react-icons/ai'
 import ChatLoading from './ChatLoading'
 import { getSender } from '../../config/ChatLogics';
 import { decodeToken } from "react-jwt";
+import GroupChatModal from '../util/GroupChatModal';
 
-const MyChats = () => {
+const MyChats = ({fetchAgain}) => {
   const  [loggedUser, setLoggedUser] = useState('');
-  const { selectedChat, setSelectedChat, user, chats, setChats } = ChatState();
+  const { selectedChat, setSelectedChat, chats, setChats } = ChatState();
   const toast = useToast()
 
   useEffect(() => {
-    const decodedToken = decodeToken(localStorage.getItem('token'))
-    // console.log(decodedToken)
-    setLoggedUser(decodedToken)
+    const user = decodeToken(localStorage.getItem('token'))
+    // console.log(user)
+    setLoggedUser(user)
     const fetchChats = async() => {
       try {
         const res = await axios.get('/api/chat', {
@@ -45,7 +46,7 @@ const MyChats = () => {
       }
     }
     fetchChats()
-  },[])
+  },[fetchAgain])
   console.log(chats)
   return (
     <Box
@@ -69,7 +70,7 @@ const MyChats = () => {
         alignItems="center"
       >
         My Chats
-        {/* <GroupChatModal> */}
+        <GroupChatModal>
           <Button
             d="flex"
             fontSize={{ base: "17px", md: "10px", lg: "17px" }}
@@ -77,7 +78,7 @@ const MyChats = () => {
           >
             New Group Chat
           </Button>
-        {/* </GroupChatModal> */}
+        </GroupChatModal>
 
       </Box>
       <Box
@@ -106,7 +107,7 @@ const MyChats = () => {
                 <Text>
                   {!chat.isGroupChat ? (
                     getSender(loggedUser, chat.ChatUsers)
-                  ) : (chat?.chatname)}
+                  ) : (chat?.chatName)}
                 </Text>
               </Box>
             ))}

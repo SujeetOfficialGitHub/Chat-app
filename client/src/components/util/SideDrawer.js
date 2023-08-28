@@ -65,7 +65,7 @@ const SideDrawer = () => {
       const res = await axios.get(`/api/user?search=${search}`, config);
       // console.log(res)
       setLoading(false);
-      setSearchResult(res.data?.users);
+      setSearchResult(res.data);
     } catch (error) {
       console.log(error)
       toast({
@@ -91,7 +91,7 @@ const SideDrawer = () => {
       };
       const res = await axios.post(`/api/chat`, { userId }, config);
       const data = await res.data;
-      // console.log(res)
+      console.log(res)
       if (!chats.find((c) => c.id === data.id)) setChats([data, ...chats]);
       setSelectedChat(data);
       setLoadingChat(false);
