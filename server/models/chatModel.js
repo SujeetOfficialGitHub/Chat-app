@@ -30,8 +30,13 @@ Chat.belongsTo(User, {
 
 // Define the association between Chat and Message for the 'latestMessage' field
 Chat.belongsTo(Message, {
-  foreignKey: 'latestMessageId',
+  foreignKey: 'latestMessage',
   as: 'LatestMessage'
+});
+
+Chat.hasMany(Message, {
+  foreignKey: 'chatId',
+  as: 'Chat'
 });
 
 module.exports = Chat;

@@ -4,3 +4,17 @@
   overflow-y: scroll;
   scrollbar-width: none;
 }
+
+/* For scrollableChat Component */
+.message-container {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.message-container.right {
+  justify-content: flex-end;
+}
+
+.message-box {
+  width: fit-content;
+}

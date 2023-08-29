@@ -32,7 +32,7 @@ const MyChats = ({fetchAgain}) => {
         })
         const data = await res.data
         setChats(data)
-        console.log(res)
+        // console.log(res)
       } catch (error) {
         console.log(error)
         toast({
@@ -47,7 +47,7 @@ const MyChats = ({fetchAgain}) => {
     }
     fetchChats()
   },[fetchAgain])
-  console.log(chats)
+  // console.log(chats)
   return (
     <Box
       display={{ base: selectedChat ? "none" : "flex", md: "flex" }}

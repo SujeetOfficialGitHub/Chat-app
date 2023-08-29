@@ -13,8 +13,10 @@ app.use(cors())
 
 const userRoutes = require('./routes/userRoutes')
 const chatRoutes = require('./routes/chatRoutes')
+const messagesRoutes = require('./routes/messageRoutes')
 app.use('/api/user', userRoutes);
 app.use('/api/chat', chatRoutes);
+app.use('/api/message', messagesRoutes);
 
 // sequelize.sync({force: true})
 // (async () => {

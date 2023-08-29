@@ -3,26 +3,17 @@ const sequelize = require('../util/database');
 const User = require('./userModel')
 const Chat = require('./chatModel')
 
-const Message = sequelize.define('message', {
-    sender: {
-        type: DataTypes.INTEGER,
-        references: {
-            model: User,
-            key: 'id'
-        }
-    },
+const Message = sequelize.define('Message', {
     content: {
-        type: DataTypes.STRING,
-        trim: true
+      type: DataTypes.STRING,
+      allowNull: false,
+      trim: true,
     },
-    // chat: {
-    //     type: DataTypes.INTEGER,
-    //     references: {
-    //         model: Chat,
-    //         key: 'id'
-    //     }
-    // }
-    
-})
+});
+  
+Message.belongsTo(User, { 
+    foreignKey: 'senderId',
+    as: 'sender'
+});
 
 module.exports = Message

@@ -91,17 +91,36 @@ const fetchChats = async (req, res) => {
             order: [['updatedAt', 'DESC']],
         });
 
+        // const results = await Promise.all(chats.map(async chat => {
+        //     const fullChat = chat.toJSON();
+        //     if (fullChat.LatestMessage) {
+        //         await fullChat.LatestMessage.reload({
+        //             include: [
+        //                 { model: User, as: 'sender', attributes: ['name', 'email'] },
+        //             ],
+        //         });
+        //     }
+        //     const chatUsers = await chat.getChatUsers({ attributes: ['id', 'name', 'email'] });
+        //     fullChat.ChatUsers = chatUsers;
+        //     return fullChat;
+        // }));
+
         const results = await Promise.all(chats.map(async chat => {
             const fullChat = chat.toJSON();
-            if (fullChat.LatestMessage) {
-                await fullChat.LatestMessage.reload({
+
+            if (fullChat.LatestMessageId) { // Check if LatestMessage exists
+                const latestMessage = await Message.findByPk(fullChat.LatestMessageId, {
                     include: [
                         { model: User, as: 'sender', attributes: ['name', 'email'] },
                     ],
                 });
+
+                fullChat.LatestMessage = latestMessage;
             }
+
             const chatUsers = await chat.getChatUsers({ attributes: ['id', 'name', 'email'] });
             fullChat.ChatUsers = chatUsers;
+
             return fullChat;
         }));
 
