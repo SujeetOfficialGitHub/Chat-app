@@ -2,7 +2,7 @@
 import { Badge } from "@chakra-ui/react";
 import {RxCross2} from 'react-icons/rx'
 
-const UserBadgeItem = ({ user, handleFunction, admin }) => {
+const UserBadgeItem = ({ user, handleFunction }) => {
   return (
     <Badge
           display="inline-flex"
@@ -20,7 +20,6 @@ const UserBadgeItem = ({ user, handleFunction, admin }) => {
         onClick={handleFunction}
     >
         {user.name}
-        {admin === user.id && <span> (Admin)</span>}
         <RxCross2 style={{marginLeft: '5px', alignItems: "center"}} />
     </Badge>
   );

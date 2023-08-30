@@ -1,13 +1,13 @@
 import { 
     useToast,
     FormControl,
-    Button,
     IconButton,
     Box,
     Text,
     Input,
     Spinner
 } from "@chakra-ui/react";
+import './styles.css'
 import { useState, useEffect } from "react";
 import { ChatState } from "../../context/ChatProvider";
 import {AiOutlineArrowLeft} from 'react-icons/ai'
@@ -17,6 +17,11 @@ import ProfileModal from "../util/ProfileModal";
 import UpdateGroupChatModal from "../util/UpdateGroupChatModal";
 import axios from "axios";
 import ScrollableChat from "./ScrollableChat";
+import io from "socket.io-client";
+
+
+const ENDPOINT = "http://localhost:8000";
+var socket, selectedChatCompare;
 
 const SingleChat = ({fetchAgain, setFetchAgain}) => {
     const [messages, setMessages] = useState([]);
@@ -30,7 +35,6 @@ const SingleChat = ({fetchAgain, setFetchAgain}) => {
     const user = decodeToken(localStorage.getItem('token'))
     const {selectedChat, setSelectedChat, notification, setNotification} = ChatState()
     
-
     const fetchMessages = async () => {
         if (!selectedChat) return;
     
@@ -47,11 +51,11 @@ const SingleChat = ({fetchAgain, setFetchAgain}) => {
             config
           );
           const data = await res.data;
-        //   console.log(res)
+          // console.log(res)
           setMessages(data);
           setLoading(false);
     
-        //   socket.emit("join chat", selectedChat.id);
+          socket.emit("join chat", selectedChat.id);
         } catch (error) {
             console.log(error)
           toast({
@@ -64,96 +68,95 @@ const SingleChat = ({fetchAgain, setFetchAgain}) => {
           });
         }
     };
+
+    const sendMessage = async (event) => {
+      if (event.key === "Enter" && newMessage) {
+        socket.emit("stop typing", selectedChat.id);
+        try {
+          const config = {
+            headers: {
+              "Content-type": "application/json",
+              Authorization: `Bearer ${localStorage.getItem('token')}`,
+            },
+          };
+          setNewMessage("");
+          const res = await axios.post(
+            "/api/message",
+            {
+              content: newMessage,
+              chatId: selectedChat.id,
+            },
+            config
+          );
+          const data = await res.data;
+          console.log(res)
+          socket.emit("new message", selectedChat.ChatUsers, data);
+          setMessages([...messages, data]);
+        } catch (error) {
+          console.log(error)
+          toast({
+            title: "Error Occured!",
+            description: "Failed to send the Message",
+            status: "error",
+            duration: 5000,
+            isClosable: true,
+            position: "bottom",
+          });
+        }
+      }
+  };
+
+    useEffect(() => {
+      socket = io(ENDPOINT);
+      socket.emit("setup", user);
+      socket.on("connected", () => setSocketConnected(true));
+      socket.on("typing", () => setIsTyping(true));
+      socket.on("stop typing", () => setIsTyping(false));
+  
+      // eslint-disable-next-line
+    }, []);
+
     useEffect(() => {
         fetchMessages();
     
-        // selectedChatCompare = selectedChat;
+        selectedChatCompare = selectedChat;
         // eslint-disable-next-line
-    }, [selectedChat]);
+    }, [selectedChat]);    
 
-
-    const sendMessage = async (event) => {
-        if (event.key === "Enter" && newMessage) {
-        //   socket.emit("stop typing", selectedChat.id);
-          try {
-            const config = {
-              headers: {
-                "Content-type": "application/json",
-                Authorization: `Bearer ${localStorage.getItem('token')}`,
-              },
-            };
-            setNewMessage("");
-            const res = await axios.post(
-              "/api/message",
-              {
-                content: newMessage,
-                chatId: selectedChat.id,
-              },
-              config
-            );
-            const data = await res.data;
-            console.log(res)
-            // socket.emit("new message", data);
-            setMessages([...messages, data]);
-          } catch (error) {
-            console.log(error)
-            toast({
-              title: "Error Occured!",
-              description: "Failed to send the Message",
-              status: "error",
-              duration: 5000,
-              isClosable: true,
-              position: "bottom",
-            });
+    useEffect(() => {
+        socket.on("message received", (newMessageRecieved) => {
+          // console.log(newMessageRecieved)
+          if (
+            !selectedChatCompare || // if chat is not selected or doesn't match current chat
+            selectedChatCompare.id !== newMessageRecieved.chatId
+          ) {
+            if (!notification.includes(newMessageRecieved)) {
+              setNotification([newMessageRecieved, ...notification]);
+              setFetchAgain(!fetchAgain);
+            }
+          } else {
+            setMessages([...messages, newMessageRecieved]);
           }
-        }
-    };
-    
-    
-    //   useEffect(() => {
-    //     socket = io(ENDPOINT);
-    //     socket.emit("setup", user);
-    //     socket.on("connected", () => setSocketConnected(true));
-    //     socket.on("typing", () => setIsTyping(true));
-    //     socket.on("stop typing", () => setIsTyping(false));
-    
-    //     // eslint-disable-next-line
-    //   }, []);
-
-    
-
-    // useEffect(() => {
-    //     socket.on("message recieved", (newMessageRecieved) => {
-    //       if (
-    //         !selectedChatCompare || // if chat is not selected or doesn't match current chat
-    //         selectedChatCompare._id !== newMessageRecieved.chat._id
-    //       ) {
-    //         if (!notification.includes(newMessageRecieved)) {
-    //           setNotification([newMessageRecieved, ...notification]);
-    //           setFetchAgain(!fetchAgain);
-    //         }
-    //       } else {
-    //         setMessages([...messages, newMessageRecieved]);
-    //       }
-    //     });
-    //   });
+        });
+    });
 
     const typingHandler = (e) => {
         setNewMessage(e.target.value);
     
         if (!socketConnected) return;
     
-        // if (!typing) {
-        //   setTyping(true);
-        //   socket.emit("typing", selectedChat.id);
-        // }
+        if (!typing) {
+          setTyping(true);
+          socket.emit("typing", selectedChat.id);
+        }
         let lastTypingTime = new Date().getTime();
         var timerLength = 3000;
         setTimeout(() => {
           var timeNow = new Date().getTime();
           var timeDiff = timeNow - lastTypingTime;
+
           if (timeDiff >= timerLength && typing) {
-            // socket.emit("stop typing", selectedChat.id);
+            socket.emit("stop typing", selectedChat.id);
             setTyping(false);
           }
         }, timerLength);
@@ -222,26 +225,26 @@ const SingleChat = ({fetchAgain, setFetchAgain}) => {
                 </div>
                 )}
 
-                <FormControl
-                    onKeyDown={sendMessage}
-                    id="first-name"
-                    background="white"
-                    rounded={5}
-                    isRequired
-                    mt={3}
-                >
                 {istyping ? (
-                    <div>
-                    {/* <Lottie
-                        options={defaultOptions}
-                        // height={50}
-                        width={70}
-                        style={{ marginBottom: 15, marginLeft: 0 }}
-                    /> */}
+                    <div className="typing-indicator-container">
+                        <div className="typing-indicator">
+                          <div className="dot"></div>
+                          <div className="dot"></div>
+                          <div className="dot"></div>
+                        </div>
                     </div>
                 ) : (
                     <></>
                 )}
+                <FormControl
+                    onKeyDown={sendMessage}
+                    id="first-name"
+                    rounded={5}
+                    background="white"
+                    isRequired
+                    mt={3}
+                    >
+                
                 <Input
                     variant="filled"
                     bg="#E0E0E0"

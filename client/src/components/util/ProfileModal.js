@@ -1,21 +1,19 @@
 import {
-    Button,
     Modal,
     ModalOverlay,
     ModalContent,
-    ModalHeader,
-    ModalFooter,
     ModalBody,
     ModalCloseButton,
     useDisclosure,
     IconButton,
-    Image,
-    Text
+    Text,
+    Avatar
 } from '@chakra-ui/react'
 import {AiOutlineEye} from 'react-icons/ai';
 
-const ProfileModal = ({children}) => {
+const ProfileModal = ({children, user}) => {
     const { isOpen, onOpen, onClose } = useDisclosure()
+
   return (
     <>
     {children ? (
@@ -30,16 +28,19 @@ const ProfileModal = ({children}) => {
           <ModalCloseButton />
 
           <ModalBody>
-            <Image
-                w="150px"
-                h="150px"
-                borderRadius="50%"
-                margin="auto"
-                border="5px solid blue"
-                src={'https://bit.ly/dan-abramov'} 
-            />
-            <Text display="flex" justifyContent="center" fontSize="20px">Sujeet</Text>
-            <Text display="flex" justifyContent="center" fontSize="20px">sujeet@example.com</Text>
+            <div>
+                <Avatar  
+                  display="flex"
+                  justifyContent="center"
+                  margin="auto"
+                  w="100px"
+                  h="100px"
+                  name={user?.name}
+                  border="5px solid blue"
+                />
+              </div>
+            <Text display="flex" justifyContent="center" fontSize="20px" textTransform="capitalize">{user?.name}</Text>
+            <Text display="flex" justifyContent="center" fontSize="20px">{user?.email}</Text>
           </ModalBody>
         </ModalContent>
     </Modal>

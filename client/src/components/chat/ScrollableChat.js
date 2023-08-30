@@ -1,6 +1,6 @@
 import React from 'react';
 import ScrollableFeed from 'react-scrollable-feed';
-import { Box } from '@chakra-ui/react';
+import { Box, Avatar } from '@chakra-ui/react';
 import './styles.css';
 
 const ScrollableChat = ({ messages, loggedUser }) => {
@@ -13,17 +13,21 @@ const ScrollableChat = ({ messages, loggedUser }) => {
               px={1}
               mb={1}
               borderRadius="md"
-              maxWidth="fit-content"
+              // maxWidth="fit-content"
               backgroundColor={loggedUser.id === m.sender.id ? 'green.600' : 'blue.800'}
               color="white"
               alignSelf={loggedUser.id === m.sender.id ? 'flex-end' : 'flex-start'}
               borderColor={loggedUser.id === m.sender.id ? 'green.500' : 'red.500'}
+              mr={loggedUser.id === m.sender.id ? '0px' : '70px'}
+              ml={loggedUser.id === m.sender.id ? '70px' : '0px'}
               borderWidth={1}
               className="message-box"
             >
-                <p style={{fontSize: '13px'}}
-                ><b>{m.sender.name}</b></p>
-                <p style={{marginLeft: '6px', marginTop: '-4px'}}>{m.content}</p>
+                <div style={{display: 'flex'}} >
+                  <Avatar size="sm" name={m.sender.name}/>
+                  <p style={{fontSize: '15px', marginLeft: '5px', alignItems: 'center', display: 'flex', textTransform: 'capitalize'}}><b>{m.sender.name}</b></p>
+                </div>
+                <p style={{marginLeft: '6px'}}>{m.content}</p>
             </Box>
           </div>
         ))}

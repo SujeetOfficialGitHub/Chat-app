@@ -1,42 +1,46 @@
 const Message = require('../models/messageModel')
 const User = require('../models/userModel')
 const Chat = require('../models/chatModel')
+const sequelize = require('../util/database')
+
 
 const sendMessage = async(req, res) => {
     const {content, chatId} = req.body;
-    console.log(content, chatId)
+
     if (!content || !chatId) {
         console.log("Invalid data passed into request");
         return res.status(400).json();
     }
+    const transaction = await sequelize.transaction();
     try {
         const newMessage = await Message.create({
             senderId: req.user.id, // Assuming senderId is the column name in the Message model
             content: content,
             chatId: chatId,
-        });
+        }, {transaction});
 
-        const message = await Message.findByPk(newMessage.id, {
-            include: [
-                { model: User, as: "sender", attributes: ["name"] },
-            ],
-        });
 
         // update latest message 
-        await Chat.update({ latestMessageId: message.id }, { where: { id: chatId } });
+        await Chat.update({ latestMessageId: newMessage.id }, { where: { id: chatId }, transaction });
+        
+        await transaction.commit();
         // Fetch chat information using a separate query
-        const chat = await Chat.findByPk(chatId, {
+        const message = await Message.findByPk(newMessage.id, {
             include: [
-                { model: User, as: 'ChatUsers', attributes: { exclude: ['password'] } },
-            ]
+                {
+                    model: User,
+                    as: "sender",
+                    attributes: ['id', "name", "email"],
+                },
+            ],
+            attributes: ['id',"chatId", "content", "createdAt"],
+            order: [["createdAt", "ASC"]],
         });
 
-        // Add chat information to the message JSON object
-        const messageJson = message.toJSON();
-
-        messageJson.chat = chat;
-        res.status(200).json(messageJson);
+        // console.log(message.toJSON())
+        res.status(200).json(message);
     } catch (error) {
+        await transaction.rollback();
         console.log(error.message)
       res.status(400).json({ error: error.message });
     }
@@ -57,7 +61,7 @@ const sendMessage = async(req, res) => {
                     attributes: ['id', "name", "email"],
                 },
             ],
-            attributes: ['id', "content", "createdAt"],
+            attributes: ['id',"ChatId", "content", "createdAt"],
             order: [["createdAt", "ASC"]],
         });
 

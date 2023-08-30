@@ -18,3 +18,37 @@
 .message-box {
   width: fit-content;
 }
+
+/* TypingIndicator animation */
+.typing-indicator-container {
+  display: flex;
+  align-items: center;
+  background: transparent;
+  margin-top: 15px;
+  margin-left: 10px;
+  margin-bottom: -10px;
+}
+
+.typing-indicator {
+  display: flex;
+  align-items: center;
+  margin-right: 5px;
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  background-color: #1b0bca;
+  border-radius: 50%;
+  margin: 2px;
+  animation: bounce 1s infinite;
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}

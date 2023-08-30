@@ -105,7 +105,7 @@ const GroupChatModal = ({children}) => {
             },
             config
           );
-          console.log(res)
+          // console.log(res)
           const data = await res.data;
           setChats([data, ...chats]);
           onClose();

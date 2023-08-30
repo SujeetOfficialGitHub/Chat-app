@@ -30,7 +30,7 @@ Chat.belongsTo(User, {
 
 // Define the association between Chat and Message for the 'latestMessage' field
 Chat.belongsTo(Message, {
-  foreignKey: 'latestMessage',
+  foreignKey: 'latestMessageId',
   as: 'LatestMessage'
 });
 

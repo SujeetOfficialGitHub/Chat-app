@@ -217,17 +217,17 @@ const UpdateGroupChatModal = ({ fetchMessages, fetchAgain, setFetchAgain}) => {
             disabled="flex"
             justifyContent="center"
           >
-            {selectedChat.chatName}
+            {selectedChat.chatName} <p style={{fontSize: '20px', textTransform: 'capitalize'}}>Admin ({selectedChat.GroupAdmin.name})</p>
           </ModalHeader>
 
           <ModalCloseButton />
           <ModalBody disabled="flex" flexDir="column" alignItems="center">
             <Box w="100%" disabled="flex" flexWrap="wrap" pb={3}>
               {selectedChat?.ChatUsers?.map((u) => (
+                selectedChat.GroupAdmin.id !== u.id &&
                 <UserBadgeItem
                   key={u.id}
                   user={u}
-                  admin={selectedChat.GroupAdmin}
                   handleFunction={() => handleRemove(u)}
                 />
               ))}

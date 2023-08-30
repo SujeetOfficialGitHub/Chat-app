@@ -30,6 +30,7 @@ import ProfileModal from './ProfileModal'
 import axios from 'axios'
 import ChatLoading from '../chat/ChatLoading'
 import UserListItem from './UserListItem'
+import { decodeToken } from 'react-jwt'
 
 const SideDrawer = () => {
   const [search, setSearch] = useState('')
@@ -39,8 +40,9 @@ const SideDrawer = () => {
 
   const { isOpen, onOpen, onClose } = useDisclosure()
 
-  const {logout, setSelectedChat, notification, setNotification, chats, setChats} = ChatState();
+  const {logout, setSelectedChat, chats, setChats} = ChatState();
   const toast = useToast()
+  const user = decodeToken(localStorage.getItem('token'));
 
   const handleSearch = async() => {
     if (!search) {
@@ -138,10 +140,15 @@ const SideDrawer = () => {
         </Menu>
         <Menu>
           <MenuButton as={Button} rightIcon={<IoMdArrowDropdown/>}>
-          <Avatar size="sm" name='Dan Abrahmov' src={'https://bit.ly/dan-abramov'} />
+          <Avatar 
+            size="sm" 
+            name={user?.name} 
+            border="1px solid black"
+            // src={'https://bit.ly/dan-abramov'} 
+          />
           </MenuButton>
           <MenuList>
-            <ProfileModal>
+            <ProfileModal user={user}>
               <MenuItem>My Profile</MenuItem>
             </ProfileModal>
             <MenuItem onClick={() => logout()}>Logout</MenuItem>
