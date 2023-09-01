@@ -2,10 +2,26 @@ const Message = require('../models/messageModel')
 const User = require('../models/userModel')
 const Chat = require('../models/chatModel')
 const sequelize = require('../util/database')
+const path = require('path')
 
 
+
+const uploadFile = async (req, res) => {
+    try {
+      // Process the uploaded image and return the image URL
+      const imageUrl = '/public/' + req.file.filename;
+      res.json({ imageUrl });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Failed to upload file' });
+    }
+};
+
+
+  
 const sendMessage = async(req, res) => {
-    const {content, chatId} = req.body;
+    const {content, messageType, chatId} = req.body;
+    console.log('send message', req.body)
 
     if (!content || !chatId) {
         console.log("Invalid data passed into request");
@@ -17,6 +33,7 @@ const sendMessage = async(req, res) => {
             senderId: req.user.id, // Assuming senderId is the column name in the Message model
             content: content,
             chatId: chatId,
+            messageType: messageType ? messageType : 'text'
         }, {transaction});
 
 
@@ -33,7 +50,7 @@ const sendMessage = async(req, res) => {
                     attributes: ['id', "name", "email"],
                 },
             ],
-            attributes: ['id',"chatId", "content", "createdAt"],
+            attributes: ['id',"chatId", "messageType", "content", "createdAt"],
             order: [["createdAt", "ASC"]],
         });
 
@@ -61,7 +78,7 @@ const sendMessage = async(req, res) => {
                     attributes: ['id', "name", "email"],
                 },
             ],
-            attributes: ['id',"ChatId", "content", "createdAt"],
+            attributes: ['id',"ChatId", "messageType", "content", "createdAt"],
             order: [["createdAt", "ASC"]],
         });
 
@@ -77,6 +94,7 @@ const sendMessage = async(req, res) => {
 
   
 module.exports = {
+    uploadFile,
     sendMessage,
     allMessages
-}
+};

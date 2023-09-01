@@ -1,11 +1,15 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../util/database');
 const User = require('./userModel')
-const Chat = require('./chatModel')
 
 const Message = sequelize.define('Message', {
-    content: {
+    messageType: {
       type: DataTypes.STRING,
+      allowNull: false,
+      trim: true
+    },
+    content: {
+      type: DataTypes.TEXT,
       allowNull: false,
       trim: true,
     },
