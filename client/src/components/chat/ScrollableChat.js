@@ -1,7 +1,8 @@
 import React from 'react';
 import ScrollableFeed from 'react-scrollable-feed';
-import { Box, Avatar } from '@chakra-ui/react';
+import { Box, Avatar, Image, Button } from '@chakra-ui/react';
 import './styles.css';
+import {saveAs} from 'file-saver'
 
 const ScrollableChat = ({ messages, loggedUser }) => {
   return (
@@ -27,7 +28,13 @@ const ScrollableChat = ({ messages, loggedUser }) => {
                   <Avatar size="sm" name={m.sender.name}/>
                   <p style={{fontSize: '15px', marginLeft: '5px', alignItems: 'center', display: 'flex', textTransform: 'capitalize'}}><b>{m.sender.name}</b></p>
                 </div>
-                <p style={{marginLeft: '6px'}}>{m.content}</p>
+                {m.messageType == 'text' ? 
+                  <p style={{marginLeft: '6px'}}>{m.content}</p>
+                  : 
+                  <>
+                  <Image maxW="lg" h="100px" src={m.content} /> 
+                  </>
+                }
             </Box>
           </div>
         ))}

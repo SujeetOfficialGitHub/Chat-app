@@ -5,7 +5,10 @@ import {
     Box,
     Text,
     Input,
-    Spinner
+    Spinner,
+    FormLabel,
+    Image,
+    Button
 } from "@chakra-ui/react";
 import './styles.css'
 import { useState, useEffect } from "react";
@@ -18,6 +21,7 @@ import UpdateGroupChatModal from "../util/UpdateGroupChatModal";
 import axios from "axios";
 import ScrollableChat from "./ScrollableChat";
 import io from "socket.io-client";
+import {BsFillImageFill} from 'react-icons/bs'
 
 
 const ENDPOINT = "http://localhost:8000";
@@ -27,6 +31,8 @@ const SingleChat = ({fetchAgain, setFetchAgain}) => {
     const [messages, setMessages] = useState([]);
     const [loading, setLoading] = useState(false);
     const [newMessage, setNewMessage] = useState("");
+    const [file, setFile] = useState('');
+    const [preViewImage, setPreviewImage] = useState(null)
     const [socketConnected, setSocketConnected] =    useState(false);
     const [typing, setTyping] = useState(false);
     const [istyping, setIsTyping] = useState(false);
@@ -35,6 +41,25 @@ const SingleChat = ({fetchAgain, setFetchAgain}) => {
     const user = decodeToken(localStorage.getItem('token'))
     const {selectedChat, setSelectedChat, notification, setNotification} = ChatState()
     
+
+    const handleChangeFile = (e) => {
+      const selectedFile = e.target.files[0];
+      setNewMessage(selectedFile.name)
+
+      if (selectedFile){
+        setFile(selectedFile)
+
+        // Check if createObjectURL is supported
+        if (typeof URL.createObjectURL === 'function') {
+          const imageUrl = URL.createObjectURL(selectedFile);
+          setPreviewImage(imageUrl)
+        } else {
+          console.error('createObjectURL is not supported in this browser.');
+        }
+        
+      }
+    }
+
     const fetchMessages = async () => {
         if (!selectedChat) return;
     
@@ -70,28 +95,61 @@ const SingleChat = ({fetchAgain, setFetchAgain}) => {
     };
 
     const sendMessage = async (event) => {
-      if (event.key === "Enter" && newMessage) {
         socket.emit("stop typing", selectedChat.id);
+
         try {
-          const config = {
-            headers: {
-              "Content-type": "application/json",
-              Authorization: `Bearer ${localStorage.getItem('token')}`,
-            },
-          };
-          setNewMessage("");
-          const res = await axios.post(
-            "/api/message",
-            {
-              content: newMessage,
-              chatId: selectedChat.id,
-            },
-            config
-          );
-          const data = await res.data;
-          console.log(res)
-          socket.emit("new message", selectedChat.ChatUsers, data);
-          setMessages([...messages, data]);
+          if (file){
+            const formData = new FormData();
+            formData.append('file', file); 
+            
+            const uploadResponse = await axios.post('/api/message/upload', formData, {
+              headers: {
+                "Content-type": "multipart/form-data",
+                Authorization: `Bearer ${localStorage.getItem('token')}`,
+              },
+            });
+            const imageUrl = await uploadResponse.data.imageUrl
+
+            const messageResponse = await axios.post("/api/message", {
+              content: imageUrl,
+              messageType: 'file',
+              chatId: selectedChat.id
+            },{
+              headers: {
+                "Content-type": "application/json",
+                Authorization: `Bearer ${localStorage.getItem('token')}`,
+              },
+            }
+            );
+            const messageData = await messageResponse.data;
+            socket.emit("new message", selectedChat.ChatUsers, messageData);
+            setMessages([...messages, messageData]);
+            setFile('')
+            setPreviewImage('')
+            setNewMessage('')
+          }else if(newMessage){
+            const config = {
+                headers: {
+                  "Content-type": "application/json",
+                  Authorization: `Bearer ${localStorage.getItem('token')}`,
+                },
+              };
+              const res = await axios.post(
+                "/api/message",
+                {
+                  content: newMessage,
+                  messageType: 'text',
+                  chatId: selectedChat.id,
+                },
+                config
+              );
+              const data = await res.data;
+              console.log(res)
+              socket.emit("new message", selectedChat.ChatUsers, data);
+              setMessages([...messages, data]);
+              setNewMessage("");
+
+          }
         } catch (error) {
           console.log(error)
           toast({
@@ -103,7 +161,7 @@ const SingleChat = ({fetchAgain, setFetchAgain}) => {
             position: "bottom",
           });
         }
-      }
+      // }
   };
 
     useEffect(() => {
@@ -161,7 +219,6 @@ const SingleChat = ({fetchAgain, setFetchAgain}) => {
           }
         }, timerLength);
     };
-  
   return (
     <>
         {selectedChat ? (
@@ -224,7 +281,7 @@ const SingleChat = ({fetchAgain, setFetchAgain}) => {
                     <ScrollableChat messages={messages} loggedUser={user} />
                 </div>
                 )}
-
+                {preViewImage && <Image w="50px" h="60px" src={preViewImage} />}
                 {istyping ? (
                     <div className="typing-indicator-container">
                         <div className="typing-indicator">
@@ -236,23 +293,20 @@ const SingleChat = ({fetchAgain, setFetchAgain}) => {
                 ) : (
                     <></>
                 )}
-                <FormControl
-                    onKeyDown={sendMessage}
-                    id="first-name"
-                    rounded={5}
-                    background="white"
-                    isRequired
-                    mt={3}
-                    >
-                
-                <Input
-                    variant="filled"
-                    bg="#E0E0E0"
-                    placeholder="Enter a message.."
-                    value={newMessage}
-                    onChange={typingHandler}
-                />
-                </FormControl>
+                <Box display="flex" alignItems="center" mt={3}>
+                  <FormControl w="fit-content">
+                    <FormLabel padding="5px" cursor="pointer" style={{background: 'white'}}>
+                      <BsFillImageFill />
+                    </FormLabel>
+                    <Input display="none" type='file' onChange={handleChangeFile} />
+                  </FormControl>
+
+                  <FormControl  w="100%" rounded={5} background="white" isRequired>
+                    <Input onChange={typingHandler} variant="filled" bg="#E0E0E0" placeholder="Type a message.." value={newMessage} disabled={true ? file : false} />
+                  </FormControl>
+
+                  <Button onClick={sendMessage}>Send</Button>
+                </Box>
             </Box>
             </>
         ) : (
